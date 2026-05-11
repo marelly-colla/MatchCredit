@@ -46,7 +46,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun InicioDeSesinMatchCredit(
     modifier: Modifier = Modifier,
-    onNavigateToRegistro: () -> Unit
+    onNavigateToRegistro: () -> Unit,
+    onNavigateToHome: () -> Unit
 ) {
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
@@ -271,6 +272,20 @@ fun InicioDeSesinMatchCredit(
                         color = Color(0xff00563b),
                         style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     )
+                    // Solo para pruebas
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Skip Login (Pruebas)",
+                        color = Color(0xff5af0b3),
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        modifier = Modifier.clickable {
+                            onNavigateToHome()
+                        }
+                    )
                 }
             }
         }
@@ -280,5 +295,8 @@ fun InicioDeSesinMatchCredit(
 @Preview(widthDp = 412, heightDp = 917)
 @Composable
 private fun InicioDeSesinMatchCreditPreview() {
-    InicioDeSesinMatchCredit(onNavigateToRegistro = {})
+    InicioDeSesinMatchCredit(
+        onNavigateToRegistro = {},
+        onNavigateToHome = {}
+    )
 }
