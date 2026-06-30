@@ -1,0 +1,17 @@
+[
+  {
+    "tipoPrestamoId": 1,
+    "nombre": "Personal",
+    "descripcion": "Gastos personales, viajes, compras, salud, consolidación de deudas"
+  },
+  {
+    "tipoPrestamoId": 2,
+    "nombre": "Hipotecario",
+    "descripcion": "Compra, construcción o remodelación de vivienda"
+  },
+  {
+    "tipoPrestamoId": 3,
+    "nombre": "Vehicular",
+    "descripcion": "Compra de autos, motos o vehículos comerciales"
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "bancoId": 1,
+    "nombre": "BBVA"
+  },
+  {
+    "bancoId": 2,
+    "nombre": "BCP"
+  },
+  {
+    "bancoId": 3,
+    "nombre": "Scotiabank"
+  },
+  {
+    "bancoId": 4,
+    "nombre": "Interbank"
+  }
+]
