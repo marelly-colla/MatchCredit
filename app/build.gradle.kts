@@ -70,6 +70,8 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.compiler)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.ui.graphics)
     ksp(libs.androidx.room.compiler)
 
     // Serialización JSON

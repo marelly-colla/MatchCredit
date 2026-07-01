@@ -1,4 +1,4 @@
-package com.example.matchcredit.screens
+package com.example.matchcredit.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -35,25 +35,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.room.Room
 import com.example.matchcredit.R
-import com.example.matchcredit.data.MatchCreditDatabase
+import com.example.matchcredit.data.repository.UsuarioRepository
 import kotlinx.coroutines.launch
 
 @Composable
 fun InicioDeSesinMatchCredit(
     modifier: Modifier = Modifier,
+    usuarioRepository: UsuarioRepository,
     onNavigateToRegistro: () -> Unit,
-    onNavigateToHome: () -> Unit
+    onNavigateToHome: (Int) -> Unit
 ) {
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    val viewModel = remember {
+        LoginViewModel(usuarioRepository)
+    }
 
     Box(
         modifier = modifier
@@ -189,26 +192,24 @@ fun InicioDeSesinMatchCredit(
                         .background(Color(0xff34d399))
                         .clickable {
                             if (correo.isNotEmpty() && contrasena.isNotEmpty()) {
+                                // LOGIN DE PRUEBA
+                                if (correo == "test@gmail.com" && contrasena == "1234") {
+                                    Toast.makeText(context, "Login de prueba exitoso", Toast.LENGTH_SHORT).show()
+                                    onNavigateToHome(1)
+                                    return@clickable
+                                }
 
                                 coroutineScope.launch {
-                                    try {
-                                        val db = Room.databaseBuilder(
+                                    val usuario = viewModel.login(correo, contrasena)
+                                    if (usuario == null) {
+                                        Toast.makeText(context,"Correo o contraseña incorrectos",Toast.LENGTH_LONG).show()
+                                    } else{
+                                        Toast.makeText(
                                             context,
-                                            MatchCreditDatabase::class.java, "matchcredit-db"
-                                        ).build()
-
-                                        val usuarioEncontrado = db.usuarioDao().obtenerUsuarioPorCorreo(correo)
-
-                                        if (usuarioEncontrado == null) {
-                                            Toast.makeText(context, "El usuario no existe", Toast.LENGTH_LONG).show()
-                                        } else if (usuarioEncontrado.contrasena != contrasena) {
-                                            Toast.makeText(context, "Contraseña incorrecta", Toast.LENGTH_LONG).show()
-                                        } else {
-                                            Toast.makeText(context, "Ingresando a la aplicación...", Toast.LENGTH_LONG).show()
-                                        }
-
-                                    } catch (e: Exception) {
-                                        Toast.makeText(context, "Error al verificar: ${e.message}", Toast.LENGTH_LONG).show()
+                                            "Bienvenido ${usuario.nombres}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        onNavigateToHome(usuario.id)
                                     }
                                 }
 
@@ -272,31 +273,8 @@ fun InicioDeSesinMatchCredit(
                         color = Color(0xff00563b),
                         style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     )
-                    // Solo para pruebas
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Skip Login (Pruebas)",
-                        color = Color(0xff5af0b3),
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        ),
-                        modifier = Modifier.clickable {
-                            onNavigateToHome()
-                        }
-                    )
                 }
             }
         }
     }
-}
-
-@Preview(widthDp = 412, heightDp = 917)
-@Composable
-private fun InicioDeSesinMatchCreditPreview() {
-    InicioDeSesinMatchCredit(
-        onNavigateToRegistro = {},
-        onNavigateToHome = {}
-    )
 }

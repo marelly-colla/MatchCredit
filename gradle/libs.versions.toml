@@ -18,6 +18,8 @@ androidxJunit = "1.2.1"
 uiTextGoogleFonts = "1.11.1"
 compiler = "3.2.0-alpha11"
 kotlinxSerializationJson = "1.7.3"
+foundation = "1.11.3"
+uiGraphics = "1.11.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -48,6 +50,8 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 androidx-compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-compiler = { group = "androidx.databinding", name = "compiler", version.ref = "compiler" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
