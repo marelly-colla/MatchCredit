@@ -2,6 +2,7 @@ package com.example.matchcredit.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -109,14 +110,22 @@ fun ResultadosPrestamoScreen(
                 else -> {
                     MensajeResultadosCard(
                         titulo = "Ranking generado",
-                        texto = "Las opciones se ordenan priorizando productos recomendados y menor cuota estimada.",
+                        texto = "Toca una opción para revisar el detalle completo del préstamo.",
                         esError = false
                     )
 
                     Spacer(modifier = Modifier.height(18.dp))
 
                     state.resultados.forEach { resultado ->
-                        ResultadoProductoCard(resultado = resultado)
+                        ResultadoProductoCard(
+                            resultado = resultado,
+                            onClick = {
+                                navController.navigate(
+                                    "detallePrestamo/$usuarioId/${resultado.producto.productoId}/$montoSolicitado/$plazoMeses/${resultado.ranking ?: 0}"
+                                )
+                            }
+                        )
+
                         Spacer(modifier = Modifier.height(14.dp))
                     }
                 }
@@ -174,7 +183,8 @@ fun MensajeResultadosCard(
 
 @Composable
 fun ResultadoProductoCard(
-    resultado: ResultadoPrestamoCalculado
+    resultado: ResultadoPrestamoCalculado,
+    onClick: () -> Unit
 ) {
     val estadoColor = when {
         resultado.esRecomendado -> Color(0xff5af0b3)
@@ -198,6 +208,7 @@ fun ResultadoProductoCard(
                 color = Color(0xff3c4a42),
                 shape = RoundedCornerShape(18.dp)
             )
+            .clickable { onClick() }
             .padding(18.dp)
     ) {
         Row(
@@ -276,6 +287,15 @@ fun ResultadoProductoCard(
                 modifier = Modifier.weight(1f)
             )
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Tocar para ver detalle →",
+            color = Color(0xff5af0b3),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold
+        )
 
         if (resultado.motivosExclusion.isNotEmpty()) {
             Spacer(modifier = Modifier.height(14.dp))

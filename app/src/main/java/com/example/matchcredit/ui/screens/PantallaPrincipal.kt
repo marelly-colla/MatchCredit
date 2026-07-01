@@ -55,7 +55,7 @@ fun PantallaPrincipalMatchCredit(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 82.dp)
+                .padding(bottom = 88.dp)
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
@@ -394,8 +394,9 @@ fun BottomNavigationBar(
         modifier = modifier
             .fillMaxWidth()
             .background(Color(0xff192029))
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
+            .padding(vertical = 14.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         BottomItem(
             texto = "Principal",
@@ -417,6 +418,19 @@ fun BottomNavigationBar(
             onClick = {
                 if (selected != "compare") {
                     navController.navigate("consultaPrestamo/$usuarioId") {
+                        launchSingleTop = true
+                    }
+                }
+            }
+        )
+
+        BottomTextItem(
+            texto = "Historial",
+            simbolo = "▤",
+            seleccionado = selected == "history",
+            onClick = {
+                if (selected != "history") {
+                    navController.navigate("historialSimulaciones/$usuarioId") {
                         launchSingleTop = true
                     }
                 }
@@ -459,7 +473,7 @@ fun BottomItem(
                     Color(0xffbbcac0)
                 }
             ),
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(22.dp)
         )
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -471,7 +485,43 @@ fun BottomItem(
             } else {
                 Color(0xffbbcac0)
             },
-            fontSize = 12.sp
+            fontSize = 11.sp
+        )
+    }
+}
+
+@Composable
+fun BottomTextItem(
+    texto: String,
+    simbolo: String,
+    seleccionado: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Text(
+            text = simbolo,
+            color = if (seleccionado) {
+                Color(0xff68fcbf)
+            } else {
+                Color(0xffbbcac0)
+            },
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = texto,
+            color = if (seleccionado) {
+                Color(0xff68fcbf)
+            } else {
+                Color(0xffbbcac0)
+            },
+            fontSize = 11.sp
         )
     }
 }
