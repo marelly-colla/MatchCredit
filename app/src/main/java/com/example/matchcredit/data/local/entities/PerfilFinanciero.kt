@@ -35,8 +35,8 @@ data class PerfilFinanciero(
     val clasificacionSbsDeclarada: ClasificacionDeclarada,
     val tieneAhorros: Boolean,
     val montoAhorros: Double,
-    val scoreMatchcredit: Int,
-    val nivelRiesgo: NivelRiesgo,
-    val ratioEndeudamientoActual: Double,
-    val capacidadPagoDisponible: Double
+    val scoreMatchcredit: Int?,
+    val nivelRiesgo: NivelRiesgo?,
+    val ratioEndeudamientoActual: Double?,
+    val capacidadPagoDisponible: Double?
 )
