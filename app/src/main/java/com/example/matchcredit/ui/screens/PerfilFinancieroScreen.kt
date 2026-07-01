@@ -1,6 +1,7 @@
 package com.example.matchcredit.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,11 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.example.matchcredit.data.repository.PerfilFinancieroRepository
 import com.example.matchcredit.data.repository.UsuarioRepository
 import com.example.matchcredit.domain.enums.ClasificacionDeclarada
@@ -27,189 +30,272 @@ fun PerfilFinancieroScreen(
     usuarioId: Int,
     perfilFinancieroRepository: PerfilFinancieroRepository,
     usuarioRepository: UsuarioRepository,
-    onGuardadoExitoso: () -> Unit
+    navController: NavController,
+    modifier: Modifier = Modifier
 ) {
-    val viewModel = remember {
+    val viewModel = remember(usuarioId) {
         PerfilFinancieroViewModel(
             usuarioId = usuarioId,
             perfilFinancieroRepository = perfilFinancieroRepository,
             usuarioRepository = usuarioRepository
         )
     }
+
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
     LaunchedEffect(state.guardadoExitoso) {
-        if (state.guardadoExitoso) onGuardadoExitoso()
+        if (state.guardadoExitoso) {
+            navController.navigate("home/$usuarioId") {
+                launchSingleTop = true
+            }
+        }
     }
-    Column(
-        modifier = Modifier
+
+    Box(
+        modifier = modifier
             .fillMaxSize()
             .background(Color(0xff0d141d))
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Título
-        Text(
-            text = "Tu perfil financiero",
-            color = Color(0xffdce3f0),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = "Con esta información encontramos los productos que mejor se ajustan a ti.",
-            color = Color(0xff6b7280),
-            fontSize = 13.sp
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 82.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Sección 1 — Situación laboral
-        FormCard(title = "Situación laboral", iconTint = Color(0xff4caf82)) {
-            EnumDropdown(
-                label = "Tipo de trabajo",
-                opciones = TipoTrabajo.entries,
-                seleccionado = state.tipoTrabajo,
-                texto = { it.descripcion },
-                onSeleccionar = viewModel::onTipoTrabajoChange
-            )
-            FormField(
-                label = "Antigüedad en el trabajo (meses)",
-                value = state.antiguedadTrabajandoMeses,
-                placeholder = "Ej: 12",
-                onValueChange = viewModel::onAntiguedadChange,
-                keyboardType = KeyboardType.Number
-            )
-        }
+            TopBar()
 
-        // Sección 2 — Ingresos y gastos
-        FormCard(title = "Ingresos y gastos", iconTint = Color(0xff4caf82)) {
-            FormField(
-                label = "Ingreso mensual neto",
-                value = state.ingresoMensual,
-                placeholder = "0.00",
-                prefix = "S/",
-                onValueChange = viewModel::onIngresoChange,
-                keyboardType = KeyboardType.Decimal
-            )
-            FormField(
-                label = "Gastos mensuales",
-                value = state.gastosMensuales,
-                placeholder = "0.00",
-                prefix = "S/",
-                onValueChange = viewModel::onGastosChange,
-                keyboardType = KeyboardType.Decimal
-            )
-        }
+            Spacer(modifier = Modifier.height(8.dp))
 
-        // Sección 3 — Deudas actuales
-        FormCard(title = "Deudas actuales", iconTint = Color(0xff4caf82)) {
-            FormField(
-                label = "Deuda total actual",
-                value = state.deudaTotalActual,
-                placeholder = "0.00",
-                prefix = "S/",
-                onValueChange = viewModel::onDeudaChange,
-                keyboardType = KeyboardType.Decimal
-            )
-            FormField(
-                label = "Cuota mensual de deudas",
-                value = state.cuotaMensualDeudas,
-                placeholder = "0.00",
-                prefix = "S/",
-                onValueChange = viewModel::onCuotaChange,
-                keyboardType = KeyboardType.Decimal
-            )
-        }
-
-        // Sección 4 — Historial y ahorros
-        FormCard(title = "Historial y ahorros", iconTint = Color(0xff4caf82)) {
-            EnumDropdown(
-                label = "Clasificación SBS declarada",
-                opciones = ClasificacionDeclarada.entries,
-                seleccionado = state.clasificacionSbs,
-                texto = { it.descripcion },
-                onSeleccionar = viewModel::onClasificacionChange
+            Text(
+                text = "Tu perfil financiero",
+                color = Color(0xffdce3f0),
+                style = TextStyle(
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold
+                )
             )
 
-            // Toggle ahorros
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "¿Tienes ahorros?", color = Color(0xffbbcac0), fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                Switch(
-                    checked = state.tieneAhorros,
-                    onCheckedChange = viewModel::onTieneAhorrosChange,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = Color(0xff4caf82),
-                        uncheckedTrackColor = Color(0xff3c4a42)
-                    )
+            Text(
+                text = "Con esta información MatchCredit calcula tu score estimado y encuentra productos que se ajusten mejor a tu perfil.",
+                color = Color(0xffbbcac0),
+                fontSize = 14.sp,
+                lineHeight = 20.sp
+            )
+
+            PerfilFormCard(title = "Situación laboral") {
+                PerfilEnumDropdown(
+                    label = "Tipo de trabajo",
+                    opciones = TipoTrabajo.entries,
+                    seleccionado = state.tipoTrabajo,
+                    texto = { it.descripcion },
+                    onSeleccionar = viewModel::onTipoTrabajoChange
+                )
+
+                PerfilFormField(
+                    label = "Antigüedad en el trabajo",
+                    value = state.antiguedadTrabajandoMeses,
+                    placeholder = "Ejemplo: 12",
+                    helper = "Ingresa la cantidad en meses.",
+                    onValueChange = viewModel::onAntiguedadChange,
+                    keyboardType = KeyboardType.Number
                 )
             }
 
-            if (state.tieneAhorros) {
-                FormField(
-                    label = "Monto de ahorros",
-                    value = state.montoAhorros,
+            PerfilFormCard(title = "Ingresos y gastos") {
+                PerfilFormField(
+                    label = "Ingreso mensual neto",
+                    value = state.ingresoMensual,
                     placeholder = "0.00",
                     prefix = "S/",
-                    onValueChange = viewModel::onMontoAhorrosChange,
+                    helper = "Monto que recibes al mes.",
+                    onValueChange = viewModel::onIngresoChange,
+                    keyboardType = KeyboardType.Decimal
+                )
+
+                PerfilFormField(
+                    label = "Gastos mensuales",
+                    value = state.gastosMensuales,
+                    placeholder = "0.00",
+                    prefix = "S/",
+                    helper = "Incluye alimentación, transporte, servicios u otros gastos fijos.",
+                    onValueChange = viewModel::onGastosChange,
                     keyboardType = KeyboardType.Decimal
                 )
             }
-        }
 
-        // Error
-        if (state.error != null) {
-            Text(
-                text = state.error!!,
-                color = Color(0xffef5350),
-                fontSize = 13.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xff2a1515))
-                    .padding(12.dp)
-            )
-        }
-
-        // Botón
-        Button(
-            onClick = viewModel::calcularYGuardar,
-            enabled = !state.isLoading,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xff4caf82),
-                disabledContainerColor = Color(0xff3c4a42)
-            )
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    color = Color.White,
-                    modifier = Modifier.size(22.dp),
-                    strokeWidth = 2.dp
+            PerfilFormCard(title = "Deudas actuales") {
+                PerfilFormField(
+                    label = "Deuda total actual",
+                    value = state.deudaTotalActual,
+                    placeholder = "0.00",
+                    prefix = "S/",
+                    helper = "Monto total aproximado que debes actualmente.",
+                    onValueChange = viewModel::onDeudaChange,
+                    keyboardType = KeyboardType.Decimal
                 )
-            } else {
-                Text(
-                    text = "Calcular y guardar perfil",
-                    color = Color.White,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold
+
+                PerfilFormField(
+                    label = "Cuota mensual de deudas",
+                    value = state.cuotaMensualDeudas,
+                    placeholder = "0.00",
+                    prefix = "S/",
+                    helper = "Cuánto pagas al mes por deudas actuales.",
+                    onValueChange = viewModel::onCuotaChange,
+                    keyboardType = KeyboardType.Decimal
                 )
             }
+
+            PerfilFormCard(title = "Historial y ahorros") {
+                PerfilEnumDropdown(
+                    label = "Clasificación declarada",
+                    opciones = ClasificacionDeclarada.entries,
+                    seleccionado = state.clasificacionSbs,
+                    texto = { it.descripcion },
+                    onSeleccionar = viewModel::onClasificacionChange
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xff0d141d))
+                        .border(
+                            width = 1.dp,
+                            color = Color(0xff3c4a42),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "¿Tienes ahorros?",
+                            color = Color(0xffdce3f0),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = "Este dato ayuda a estimar tu estabilidad financiera.",
+                            color = Color(0xff6b7280),
+                            fontSize = 11.sp,
+                            lineHeight = 15.sp
+                        )
+                    }
+
+                    Switch(
+                        checked = state.tieneAhorros,
+                        onCheckedChange = viewModel::onTieneAhorrosChange,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color(0xff5af0b3),
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = Color(0xff3c4a42)
+                        )
+                    )
+                }
+
+                if (state.tieneAhorros) {
+                    PerfilFormField(
+                        label = "Monto de ahorros",
+                        value = state.montoAhorros,
+                        placeholder = "0.00",
+                        prefix = "S/",
+                        helper = "Monto aproximado que tienes ahorrado.",
+                        onValueChange = viewModel::onMontoAhorrosChange,
+                        keyboardType = KeyboardType.Decimal
+                    )
+                }
+            }
+
+            if (state.error != null) {
+                PerfilMensajeCard(
+                    texto = state.error ?: "",
+                    esError = true
+                )
+            }
+
+            Button(
+                onClick = viewModel::calcularYGuardar,
+                enabled = !state.isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xff5af0b3),
+                    disabledContainerColor = Color(0xff3c4a42)
+                )
+            ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        color = Color(0xff0d141d),
+                        modifier = Modifier.size(22.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Calcular y guardar perfil",
+                        color = Color(0xff0d141d),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        BottomNavigationBar(
+            selected = "profile",
+            usuarioId = usuarioId,
+            navController = navController,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
-// Dropdown genérico para enums
+@Composable
+fun PerfilFormCard(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xff151c25))
+            .border(
+                width = 1.dp,
+                color = Color(0xff3c4a42),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Text(
+            text = title.uppercase(),
+            color = Color(0xffbbcac0),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        content()
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T> EnumDropdown(
+fun <T> PerfilEnumDropdown(
     label: String,
     opciones: List<T>,
     seleccionado: T,
@@ -218,33 +304,49 @@ fun <T> EnumDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(text = label, color = Color(0xffbbcac0), fontSize = 11.sp, fontWeight = FontWeight.Medium)
+    Column {
+        Text(
+            text = label.uppercase(),
+            color = Color(0xffbbcac0),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         ExposedDropdownMenuBox(
             expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
+            onExpandedChange = {
+                expanded = !expanded
+            }
         ) {
             OutlinedTextField(
                 value = texto(seleccionado),
                 onValueChange = {},
                 readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xff0d141d),
                     unfocusedContainerColor = Color(0xff0d141d),
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
                     unfocusedBorderColor = Color(0xff3c4a42),
-                    focusedBorderColor = Color(0xff4caf82)
+                    focusedBorderColor = Color(0xff5af0b3),
+                    cursorColor = Color(0xff5af0b3)
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor(),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(14.dp)
             )
+
             ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false },
+                onDismissRequest = {
+                    expanded = false
+                },
                 modifier = Modifier.background(Color(0xff192029))
             ) {
                 opciones.forEach { opcion ->
@@ -252,7 +354,11 @@ fun <T> EnumDropdown(
                         text = {
                             Text(
                                 text = texto(opcion),
-                                color = if (opcion == seleccionado) Color(0xff4caf82) else Color(0xffdce3f0),
+                                color = if (opcion == seleccionado) {
+                                    Color(0xff5af0b3)
+                                } else {
+                                    Color(0xffdce3f0)
+                                },
                                 fontSize = 14.sp
                             )
                         },
@@ -268,35 +374,110 @@ fun <T> EnumDropdown(
     }
 }
 
-// FormField extendido con KeyboardType
 @Composable
-fun FormField(
+fun PerfilFormField(
     label: String,
     value: String,
     placeholder: String,
-    isPassword: Boolean = false,
+    helper: String? = null,
     prefix: String? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     onValueChange: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(text = label, color = Color(0xffbbcac0), fontSize = 11.sp, fontWeight = FontWeight.Medium)
+    Column {
+        Text(
+            text = label.uppercase(),
+            color = Color(0xffbbcac0),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = Color(0xff6b7280), fontSize = 14.sp) },
-            leadingIcon = prefix?.let { { Text(it, color = Color(0xffbbcac0), modifier = Modifier.padding(start = 8.dp)) } },
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    color = Color(0xff6b7280),
+                    fontSize = 14.sp
+                )
+            },
+            leadingIcon = prefix?.let {
+                {
+                    Text(
+                        text = it,
+                        color = Color(0xffbbcac0),
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType
+            ),
+            singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color(0xff0d141d),
                 unfocusedContainerColor = Color(0xff0d141d),
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 unfocusedBorderColor = Color(0xff3c4a42),
-                focusedBorderColor = Color(0xff4caf82)
+                focusedBorderColor = Color(0xff5af0b3),
+                cursorColor = Color(0xff5af0b3)
             ),
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp),
+            shape = RoundedCornerShape(14.dp)
+        )
+
+        if (helper != null) {
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = helper,
+                color = Color(0xff6b7280),
+                fontSize = 11.sp,
+                lineHeight = 15.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun PerfilMensajeCard(
+    texto: String,
+    esError: Boolean
+) {
+    val color = if (esError) Color(0xffef5350) else Color(0xff5af0b3)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xff151c25))
+            .border(
+                width = 1.dp,
+                color = color,
+                shape = RoundedCornerShape(14.dp)
+            )
+            .padding(14.dp)
+    ) {
+        Text(
+            text = if (esError) "Revisa los datos" else "Perfil actualizado",
+            color = color,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = texto,
+            color = Color(0xffbbcac0),
+            fontSize = 12.sp,
+            lineHeight = 17.sp
         )
     }
 }

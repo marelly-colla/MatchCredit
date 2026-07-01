@@ -402,7 +402,11 @@ fun BottomNavigationBar(
             icon = R.drawable.ic_home,
             seleccionado = selected == "home",
             onClick = {
-                // Ya estás en principal.
+                if (selected != "home") {
+                    navController.navigate("home/$usuarioId") {
+                        launchSingleTop = true
+                    }
+                }
             }
         )
 
@@ -411,7 +415,11 @@ fun BottomNavigationBar(
             icon = R.drawable.ic_compare,
             seleccionado = selected == "compare",
             onClick = {
-                navController.navigate("consultaPrestamo/$usuarioId")
+                if (selected != "compare") {
+                    navController.navigate("consultaPrestamo/$usuarioId") {
+                        launchSingleTop = true
+                    }
+                }
             }
         )
 
@@ -420,7 +428,11 @@ fun BottomNavigationBar(
             icon = R.drawable.ic_profile,
             seleccionado = selected == "profile",
             onClick = {
-                navController.navigate("perfilFinanciero/$usuarioId")
+                if (selected != "profile") {
+                    navController.navigate("perfilFinanciero/$usuarioId") {
+                        launchSingleTop = true
+                    }
+                }
             }
         )
     }
