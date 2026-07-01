@@ -1,6 +1,6 @@
 package com.example.matchcredit.domain.calculator
 
-class FinancialCalculator {
+object FinancialCalculator {
     fun calcularRatioEndeudamiento(
         ingreso: Double,
         gastos: Double,

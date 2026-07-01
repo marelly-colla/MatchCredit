@@ -6,7 +6,6 @@ import com.example.matchcredit.domain.enums.TipoTrabajo
 import com.example.matchcredit.domain.model.ScoreResult
 
 class ScoreCalculator {
-    private val financialCalculator = FinancialCalculator()
     fun calcularScore(
         ingresoMensual: Double,
         gastosMensuales: Double,
@@ -17,55 +16,54 @@ class ScoreCalculator {
         montoAhorros: Double,
         edad: Int
     ): ScoreResult {
-        val ratio = financialCalculator.calcularRatioEndeudamiento(
+        val ratio = FinancialCalculator.calcularRatioEndeudamiento(
             ingresoMensual,
             gastosMensuales,
             cuotaMensualDeudas
         )
-        val capacidadPago = calcularPuntajeCapacidadPago(ratio)
+        val puntajeCapacidadPago = calcularPuntajeCapacidadPago(ratio)
 
-        val ingreso = calcularPuntajeIngreso(ingresoMensual)
+        val puntajeIngreso = calcularPuntajeIngreso(ingresoMensual)
 
-        val trabajo = calcularPuntajeTrabajo(tipoTrabajo)
+        val puntajeTrabajo = calcularPuntajeTrabajo(tipoTrabajo)
 
-        val antiguedad = calcularPuntajeAntiguedad(antiguedadMeses)
+        val puntajeAntiguedad = calcularPuntajeAntiguedad(antiguedadMeses)
 
-        val historial = calcularPuntajeHistorial(clasificacionCrediticia)
+        val puntajeHistorial = calcularPuntajeHistorial(clasificacionCrediticia)
 
-        val ahorros = calcularPuntajeAhorros(
+        val puntajeAhorros = calcularPuntajeAhorros(
             montoAhorros,
             ingresoMensual
         )
 
-        val edadScore = calcularPuntajeEdad(edad)
+        val puntajeEdad = calcularPuntajeEdad(edad)
 
         val scoreTotal =
-            capacidadPago +
-                    ingreso +
-                    trabajo +
-                    antiguedad +
-                    historial +
-                    ahorros +
-                    edadScore
+            puntajeCapacidadPago +
+                    puntajeIngreso +
+                    puntajeTrabajo +
+                    puntajeAntiguedad +
+                    puntajeHistorial +
+                    puntajeAhorros +
+                    puntajeEdad
         val nivelRiesgo = obtenerNivelRiesgo(scoreTotal)
 
         return ScoreResult(
             score = scoreTotal,
             nivelRiesgo = nivelRiesgo,
-            capacidadPago = capacidadPago,
-            ingreso = ingreso,
-            trabajo = trabajo,
-            antiguedad = antiguedad,
-            historial = historial,
-            ahorros = ahorros,
-            edad = edadScore
+            puntajeCapacidadPago = puntajeCapacidadPago,
+            puntajeIngreso = puntajeIngreso,
+            puntajeTrabajo = puntajeTrabajo,
+            puntajeAntiguedad = puntajeAntiguedad,
+            puntajeHistorial = puntajeHistorial,
+            puntajeAhorros = puntajeAhorros,
+            puntajeEdad = puntajeEdad
         )
     }
 
     private fun calcularPuntajeCapacidadPago(
         ratio: Double,
     ): Int {
-
         return when {
             ratio <= 0.30 -> 30
             ratio <= 0.45 -> 20
@@ -78,7 +76,6 @@ class ScoreCalculator {
     private fun calcularPuntajeIngreso(
         ingreso: Double
     ): Int {
-
         return when {
             ingreso >= 5000 -> 20
             ingreso >= 3000 -> 15
@@ -102,7 +99,6 @@ class ScoreCalculator {
     private fun calcularPuntajeAntiguedad(
         meses: Int
     ): Int {
-
         return when {
             meses >= 24 -> 10
             meses >= 12 -> 7
@@ -128,7 +124,6 @@ class ScoreCalculator {
         ahorros: Double,
         ingreso: Double
     ): Int {
-
         return when {
             ahorros >= ingreso -> 10
             ahorros > 0 -> 5
@@ -139,7 +134,6 @@ class ScoreCalculator {
     private fun calcularPuntajeEdad(
         edad: Int
     ): Int {
-
         return if (edad in 18..65) {
             5
         } else {

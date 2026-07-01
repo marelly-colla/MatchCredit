@@ -1,3 +1,8 @@
+configurations.all {
+    resolutionStrategy {
+        force("com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava")
+    }
+}
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)

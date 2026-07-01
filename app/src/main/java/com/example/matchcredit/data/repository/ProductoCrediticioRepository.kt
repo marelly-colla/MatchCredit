@@ -1,5 +1,6 @@
 package com.example.matchcredit.data.repository
 
+import com.example.matchcredit.data.dto.ProductoCrediticioDetalle
 import com.example.matchcredit.data.local.dao.ProductoCrediticioDao
 import com.example.matchcredit.data.local.entities.ProductoCrediticio
 
@@ -11,7 +12,7 @@ class ProductoCrediticioRepository(
         productoCrediticioDao.insertarTodos(lista)
     }
 
-    suspend fun obtenerTodos(): List<ProductoCrediticio> {
+    suspend fun obtenerTodos(): List<ProductoCrediticioDetalle> {
         return productoCrediticioDao.obtenerTodos()
     }
 
