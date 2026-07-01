@@ -11,6 +11,7 @@ import com.example.matchcredit.ui.screens.InicioDeSesinMatchCredit
 import com.example.matchcredit.ui.screens.RegistroMatchCredit
 import com.example.matchcredit.ui.screens.PantallaPrincipalMatchCredit
 import com.example.matchcredit.ui.screens.PerfilFinancieroScreen
+import com.example.matchcredit.ui.screens.ConsultaPrestamoScreen
 
 @Composable
 fun AppNavigation(
@@ -48,7 +49,8 @@ fun AppNavigation(
             PantallaPrincipalMatchCredit(
                 usuarioId = usuarioId,
                 usuarioRepository = appContainer.usuarioRepository,
-                perfilFinancieroRepository = appContainer.perfilFinancieroRepository
+                perfilFinancieroRepository = appContainer.perfilFinancieroRepository,
+                navController = navController
             )
         }
 
@@ -67,6 +69,17 @@ fun AppNavigation(
                         popUpTo("perfilFinanciero/{usuarioId}") { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable("consultaPrestamo/{usuarioId}") { backStackEntry ->
+            val usuarioId = backStackEntry.arguments
+                ?.getString("usuarioId")
+                ?.toIntOrNull() ?: 0
+
+            ConsultaPrestamoScreen(
+                usuarioId = usuarioId,
+                navController = navController
             )
         }
     }
