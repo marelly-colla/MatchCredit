@@ -13,6 +13,8 @@ import com.example.matchcredit.ui.screens.PantallaPrincipalMatchCredit
 import com.example.matchcredit.ui.screens.PerfilFinancieroScreen
 import com.example.matchcredit.ui.screens.ConsultaPrestamoScreen
 import com.example.matchcredit.ui.screens.ResultadosPrestamoScreen
+import com.example.matchcredit.ui.screens.DetallePrestamoScreen
+import com.example.matchcredit.ui.screens.HistorialSimulacionesScreen
 
 @Composable
 fun AppNavigation(
@@ -37,16 +39,19 @@ fun AppNavigation(
 
         composable("registro") {
             RegistroMatchCredit(
-                navController=navController,
+                navController = navController,
                 usuarioRepository = appContainer.usuarioRepository
             )
         }
 
         composable(
             route = "home/{usuarioId}",
-            arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+            arguments = listOf(
+                navArgument("usuarioId") { type = NavType.IntType }
+            )
         ) { backStackEntry ->
             val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+
             PantallaPrincipalMatchCredit(
                 usuarioId = usuarioId,
                 usuarioRepository = appContainer.usuarioRepository,
@@ -57,7 +62,9 @@ fun AppNavigation(
 
         composable(
             route = "perfilFinanciero/{usuarioId}",
-            arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+            arguments = listOf(
+                navArgument("usuarioId") { type = NavType.IntType }
+            )
         ) { backStackEntry ->
             val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
 
@@ -105,6 +112,51 @@ fun AppNavigation(
                 perfilFinancieroRepository = appContainer.perfilFinancieroRepository,
                 productoCrediticioRepository = appContainer.productoCrediticioRepository,
                 bancoRepository = appContainer.bancoRepository,
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "detallePrestamo/{usuarioId}/{productoId}/{monto}/{plazo}/{ranking}",
+            arguments = listOf(
+                navArgument("usuarioId") { type = NavType.IntType },
+                navArgument("productoId") { type = NavType.IntType },
+                navArgument("monto") { type = NavType.FloatType },
+                navArgument("plazo") { type = NavType.IntType },
+                navArgument("ranking") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+            val productoId = backStackEntry.arguments?.getInt("productoId") ?: 0
+            val monto = backStackEntry.arguments?.getFloat("monto")?.toDouble() ?: 0.0
+            val plazo = backStackEntry.arguments?.getInt("plazo") ?: 0
+            val ranking = backStackEntry.arguments?.getInt("ranking") ?: 0
+
+            DetallePrestamoScreen(
+                usuarioId = usuarioId,
+                productoId = productoId,
+                montoSolicitado = monto,
+                plazoMeses = plazo,
+                ranking = ranking,
+                perfilFinancieroRepository = appContainer.perfilFinancieroRepository,
+                productoCrediticioRepository = appContainer.productoCrediticioRepository,
+                bancoRepository = appContainer.bancoRepository,
+                resultadoGuardadoRepository = appContainer.resultadoGuardadoRepository,
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "historialSimulaciones/{usuarioId}",
+            arguments = listOf(
+                navArgument("usuarioId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+
+            HistorialSimulacionesScreen(
+                usuarioId = usuarioId,
+                resultadoGuardadoRepository = appContainer.resultadoGuardadoRepository,
                 navController = navController
             )
         }
