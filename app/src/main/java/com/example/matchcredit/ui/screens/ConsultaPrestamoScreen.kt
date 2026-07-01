@@ -165,18 +165,9 @@ fun ConsultaPrestamoScreen(
                         }
 
                         else -> {
-                            esMensajeError = false
-                            mensaje =
-                                "Datos listos: $tipoPrestamo por S/ ${"%,.2f".format(monto)} a $plazo meses. En el siguiente paso se mostrarán los bancos, cuotas y ranking."
-
-                            /*
-                            Luego, cuando creemos ResultadosPrestamoScreen,
-                            cambiaremos este mensaje por:
-
                             navController.navigate(
                                 "resultadosPrestamo/$usuarioId/$tipoPrestamo/$monto/$plazo"
                             )
-                            */
                         }
                     }
                 }

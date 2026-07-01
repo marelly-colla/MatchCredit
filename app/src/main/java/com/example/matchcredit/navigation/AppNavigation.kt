@@ -12,6 +12,8 @@ import com.example.matchcredit.ui.screens.RegistroMatchCredit
 import com.example.matchcredit.ui.screens.PantallaPrincipalMatchCredit
 import com.example.matchcredit.ui.screens.PerfilFinancieroScreen
 import com.example.matchcredit.ui.screens.ConsultaPrestamoScreen
+import com.example.matchcredit.ui.screens.ConsultaPrestamoScreen
+import com.example.matchcredit.ui.screens.ResultadosPrestamoScreen
 
 @Composable
 fun AppNavigation(
@@ -64,11 +66,7 @@ fun AppNavigation(
                 usuarioId = usuarioId,
                 perfilFinancieroRepository = appContainer.perfilFinancieroRepository,
                 usuarioRepository = appContainer.usuarioRepository,
-                onGuardadoExitoso = {
-                    navController.navigate("home/$usuarioId") {
-                        popUpTo("perfilFinanciero/{usuarioId}") { inclusive = true }
-                    }
-                }
+                navController = navController
             )
         }
 
@@ -79,6 +77,46 @@ fun AppNavigation(
 
             ConsultaPrestamoScreen(
                 usuarioId = usuarioId,
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "consultaPrestamo/{usuarioId}",
+            arguments = listOf(
+                navArgument("usuarioId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+
+            ConsultaPrestamoScreen(
+                usuarioId = usuarioId,
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "resultadosPrestamo/{usuarioId}/{tipoPrestamo}/{monto}/{plazo}",
+            arguments = listOf(
+                navArgument("usuarioId") { type = NavType.IntType },
+                navArgument("tipoPrestamo") { type = NavType.StringType },
+                navArgument("monto") { type = NavType.FloatType },
+                navArgument("plazo") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+            val tipoPrestamo = backStackEntry.arguments?.getString("tipoPrestamo") ?: "Personal"
+            val monto = backStackEntry.arguments?.getFloat("monto")?.toDouble() ?: 0.0
+            val plazo = backStackEntry.arguments?.getInt("plazo") ?: 0
+
+            ResultadosPrestamoScreen(
+                usuarioId = usuarioId,
+                tipoPrestamo = tipoPrestamo,
+                montoSolicitado = monto,
+                plazoMeses = plazo,
+                perfilFinancieroRepository = appContainer.perfilFinancieroRepository,
+                productoCrediticioRepository = appContainer.productoCrediticioRepository,
+                bancoRepository = appContainer.bancoRepository,
                 navController = navController
             )
         }
