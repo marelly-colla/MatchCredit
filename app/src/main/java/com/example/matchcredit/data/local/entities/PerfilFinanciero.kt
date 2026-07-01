@@ -4,6 +4,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.matchcredit.domain.enums.ClasificacionDeclarada
+import com.example.matchcredit.domain.enums.NivelRiesgo
+import com.example.matchcredit.domain.enums.TipoTrabajo
 
 @Entity(
     tableName = "perfiles_financieros",
@@ -23,17 +26,17 @@ data class PerfilFinanciero(
 
     val usuarioId: Int,
 
-    val tipoTrabajo: String,
+    val tipoTrabajo: TipoTrabajo,
     val ingresoMensual: Double,
     val gastosMensuales: Double,
     val deudaTotalActual: Double,
     val cuotaMensualDeudas: Double,
     val antiguedadTrabajandoMeses: Int,
-    val clasificacionSbsDeclarada: String="",
+    val clasificacionSbsDeclarada: ClasificacionDeclarada,
     val tieneAhorros: Boolean,
     val montoAhorros: Double,
     val scoreMatchcredit: Int,
-    val nivelRiesgo: String,
+    val nivelRiesgo: NivelRiesgo,
     val ratioEndeudamientoActual: Double,
     val capacidadPagoDisponible: Double
 )
