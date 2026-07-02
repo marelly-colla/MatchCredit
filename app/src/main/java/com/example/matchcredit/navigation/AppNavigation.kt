@@ -87,6 +87,7 @@ fun AppNavigation(
 
             ConsultaPrestamoScreen(
                 usuarioId = usuarioId,
+                perfilFinancieroRepository = appContainer.perfilFinancieroRepository,
                 navController = navController
             )
         }

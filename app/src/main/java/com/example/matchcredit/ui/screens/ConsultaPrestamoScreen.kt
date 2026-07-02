@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -22,19 +23,45 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.matchcredit.data.repository.PerfilFinancieroRepository
+import com.example.matchcredit.domain.calculator.MontoRecomendado
+import com.example.matchcredit.domain.calculator.MontoRecomendadoCalculator
+import com.example.matchcredit.domain.calculator.NivelMontoRecomendado
 
 @Composable
 fun ConsultaPrestamoScreen(
     usuarioId: Int,
+    perfilFinancieroRepository: PerfilFinancieroRepository,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val viewModel = remember(usuarioId) {
+        ConsultaPrestamoViewModel(
+            usuarioId = usuarioId,
+            perfilFinancieroRepository = perfilFinancieroRepository
+        )
+    }
+
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
     var tipoPrestamo by rememberSaveable { mutableStateOf("Personal") }
     var montoSolicitado by rememberSaveable { mutableStateOf("") }
     var plazoMeses by rememberSaveable { mutableStateOf("") }
     var mensaje by remember { mutableStateOf<String?>(null) }
     var esMensajeError by remember { mutableStateOf(false) }
+
+    val plazoParaSugerencia = plazoMeses.toIntOrNull()
+
+    val montoRecomendado = MontoRecomendadoCalculator.calcular(
+        ingresoMensual = state.perfil?.ingresoMensual,
+        gastosMensuales = state.perfil?.gastosMensuales,
+        cuotaMensualDeudas = state.perfil?.cuotaMensualDeudas,
+        capacidadPagoDisponible = state.perfil?.capacidadPagoDisponible,
+        tipoPrestamo = tipoPrestamo,
+        plazoMeses = plazoParaSugerencia
+    )
 
     val tiposPrestamo = listOf(
         "Personal" to "Para gastos personales, estudios, viajes o emergencias.",
@@ -78,7 +105,36 @@ fun ConsultaPrestamoScreen(
                 lineHeight = 20.sp
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+
+            when {
+                state.cargando -> {
+                    OrientacionMontoCargandoCard()
+                }
+
+                state.error != null -> {
+                    MensajeConsultaCard(
+                        texto = state.error ?: "No se pudo cargar tu perfil financiero.",
+                        esError = true
+                    )
+                }
+
+                else -> {
+                    OrientacionMontoCard(
+                        montoRecomendado = montoRecomendado,
+                        onUsarMonto = {
+                            if (montoRecomendado.montoMaximoEstimado > 0.0) {
+                                montoSolicitado = "%.0f".format(montoRecomendado.montoMaximoEstimado)
+                                plazoMeses = montoRecomendado.plazoUsadoMeses.toString()
+                                esMensajeError = false
+                                mensaje = "Se usó el monto sugerido como referencia. Puedes ajustarlo antes de buscar opciones."
+                            }
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Column(
                 modifier = Modifier
@@ -181,6 +237,225 @@ fun ConsultaPrestamoScreen(
             usuarioId = usuarioId,
             navController = navController,
             modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}
+
+@Composable
+fun OrientacionMontoCargandoCard() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xff151c25))
+            .border(
+                width = 1.dp,
+                color = Color(0xff3c4a42),
+                shape = RoundedCornerShape(18.dp)
+            )
+            .padding(18.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CircularProgressIndicator(
+            color = Color(0xff5af0b3),
+            modifier = Modifier.size(22.dp),
+            strokeWidth = 2.dp
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = "Calculando orientación de monto...",
+            color = Color(0xffbbcac0),
+            fontSize = 13.sp
+        )
+    }
+}
+
+@Composable
+fun OrientacionMontoCard(
+    montoRecomendado: MontoRecomendado,
+    onUsarMonto: () -> Unit
+) {
+    val colorNivel = when (montoRecomendado.nivel) {
+        NivelMontoRecomendado.DISPONIBLE -> Color(0xff5af0b3)
+        NivelMontoRecomendado.LIMITADO -> Color(0xffffc107)
+        NivelMontoRecomendado.NO_RECOMENDADO -> Color(0xffef5350)
+        NivelMontoRecomendado.INCOMPLETO -> Color(0xff6b7280)
+    }
+
+    val etiquetaNivel = when (montoRecomendado.nivel) {
+        NivelMontoRecomendado.DISPONIBLE -> "Disponible"
+        NivelMontoRecomendado.LIMITADO -> "Limitado"
+        NivelMontoRecomendado.NO_RECOMENDADO -> "Cuidado"
+        NivelMontoRecomendado.INCOMPLETO -> "Pendiente"
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xff151c25))
+            .border(
+                width = 1.dp,
+                color = colorNivel,
+                shape = RoundedCornerShape(20.dp)
+            )
+            .padding(18.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "ORIENTACIÓN PREVIA",
+                    color = Color(0xffbbcac0),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = montoRecomendado.titulo,
+                    color = Color(0xffdce3f0),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 22.sp
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(colorNivel.copy(alpha = 0.18f))
+                    .border(
+                        width = 1.dp,
+                        color = colorNivel,
+                        shape = RoundedCornerShape(999.dp)
+                    )
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = etiquetaNivel,
+                    color = colorNivel,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = montoRecomendado.mensaje,
+            color = Color(0xffbbcac0),
+            fontSize = 13.sp,
+            lineHeight = 18.sp
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OrientacionMiniItem(
+                titulo = "CUOTA SALUDABLE",
+                valor = "S/ ${"%,.0f".format(montoRecomendado.cuotaMaximaSaludable)}",
+                modifier = Modifier.weight(1f)
+            )
+
+            OrientacionMiniItem(
+                titulo = "MONTO ESTIMADO",
+                valor = "S/ ${"%,.0f".format(montoRecomendado.montoMaximoEstimado)}",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Referencia calculada para ${montoRecomendado.plazoUsadoMeses} meses con TEA referencial de ${montoRecomendado.teaReferencialPct}%.",
+            color = Color(0xff6b7280),
+            fontSize = 12.sp,
+            lineHeight = 17.sp
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = montoRecomendado.recomendacion,
+            color = colorNivel,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            lineHeight = 18.sp
+        )
+
+        if (montoRecomendado.montoMaximoEstimado > 0.0) {
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(46.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(colorNivel.copy(alpha = 0.16f))
+                    .border(
+                        width = 1.dp,
+                        color = colorNivel,
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                    .clickable {
+                        onUsarMonto()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Usar monto sugerido",
+                    color = colorNivel,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun OrientacionMiniItem(
+    titulo: String,
+    valor: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xff0d141d))
+            .border(
+                width = 1.dp,
+                color = Color(0xff3c4a42),
+                shape = RoundedCornerShape(14.dp)
+            )
+            .padding(12.dp)
+    ) {
+        Text(
+            text = titulo,
+            color = Color(0xffbbcac0),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = valor,
+            color = Color(0xffdce3f0),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
