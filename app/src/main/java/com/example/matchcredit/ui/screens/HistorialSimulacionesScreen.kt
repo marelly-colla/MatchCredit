@@ -2,6 +2,7 @@ package com.example.matchcredit.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,13 +74,23 @@ fun HistorialSimulacionesScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Aquí puedes revisar los préstamos que guardaste anteriormente.",
+                text = "Revisa, vuelve a abrir o elimina los préstamos que guardaste anteriormente.",
                 color = Color(0xffbbcac0),
                 fontSize = 14.sp,
                 lineHeight = 20.sp
             )
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            state.mensaje?.let { mensaje ->
+                HistorialMensajeCard(
+                    titulo = "Actualizado",
+                    texto = mensaje,
+                    esError = false
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+            }
 
             when {
                 state.cargando -> {
@@ -107,7 +118,16 @@ fun HistorialSimulacionesScreen(
                 else -> {
                     state.simulaciones.forEach { simulacion ->
                         SimulacionGuardadaCard(
-                            simulacion = simulacion
+                            simulacion = simulacion,
+                            eliminando = state.eliminandoId == simulacion.resultadoId,
+                            onVerDetalle = {
+                                navController.navigate(
+                                    "detalleSimulacionGuardada/$usuarioId/${simulacion.resultadoId}"
+                                )
+                            },
+                            onEliminar = {
+                                viewModel.eliminarSimulacion(simulacion.resultadoId)
+                            }
                         )
 
                         Spacer(modifier = Modifier.height(14.dp))
@@ -129,7 +149,10 @@ fun HistorialSimulacionesScreen(
 
 @Composable
 fun SimulacionGuardadaCard(
-    simulacion: ResultadoGuardadoResumen
+    simulacion: ResultadoGuardadoResumen,
+    eliminando: Boolean,
+    onVerDetalle: () -> Unit,
+    onEliminar: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -143,22 +166,50 @@ fun SimulacionGuardadaCard(
             )
             .padding(18.dp)
     ) {
-        Text(
-            text = simulacion.nombreBanco,
-            color = Color(0xff5af0b3),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = simulacion.nombreBanco,
+                    color = Color(0xff5af0b3),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-        Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = simulacion.nombreProducto,
-            color = Color(0xffdce3f0),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 22.sp
-        )
+                Text(
+                    text = simulacion.nombreProducto,
+                    color = Color(0xffdce3f0),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 22.sp
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(Color(0xff0d141d))
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xff3c4a42),
+                        shape = RoundedCornerShape(999.dp)
+                    )
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = "#${simulacion.ranking}",
+                    color = Color(0xffbbcac0),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(6.dp))
 
@@ -233,6 +284,62 @@ fun SimulacionGuardadaCard(
             fontSize = 12.sp,
             lineHeight = 17.sp
         )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(Color(0xff5af0b3).copy(alpha = 0.16f))
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xff5af0b3),
+                        shape = RoundedCornerShape(999.dp)
+                    )
+                    .clickable {
+                        onVerDetalle()
+                    }
+                    .padding(horizontal = 14.dp, vertical = 9.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Ver detalle",
+                    color = Color(0xff5af0b3),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(Color(0xffef5350).copy(alpha = 0.14f))
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xffef5350),
+                        shape = RoundedCornerShape(999.dp)
+                    )
+                    .clickable(enabled = !eliminando) {
+                        onEliminar()
+                    }
+                    .padding(horizontal = 14.dp, vertical = 9.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (eliminando) "Eliminando..." else "Eliminar",
+                    color = Color(0xffef5350),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
 

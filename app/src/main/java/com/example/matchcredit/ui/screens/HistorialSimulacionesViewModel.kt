@@ -11,6 +11,8 @@ import kotlinx.coroutines.launch
 data class HistorialSimulacionesUiState(
     val cargando: Boolean = true,
     val error: String? = null,
+    val mensaje: String? = null,
+    val eliminandoId: Int? = null,
     val simulaciones: List<ResultadoGuardadoResumen> = emptyList()
 )
 
@@ -29,8 +31,9 @@ class HistorialSimulacionesViewModel(
     fun cargarSimulaciones() {
         viewModelScope.launch {
             try {
-                _uiState.value = HistorialSimulacionesUiState(
-                    cargando = true
+                _uiState.value = _uiState.value.copy(
+                    cargando = true,
+                    error = null
                 )
 
                 val simulaciones = resultadoGuardadoRepository.obtenerResumen(usuarioId)
@@ -43,6 +46,35 @@ class HistorialSimulacionesViewModel(
                 _uiState.value = HistorialSimulacionesUiState(
                     cargando = false,
                     error = e.message ?: "No se pudieron cargar las simulaciones guardadas."
+                )
+            }
+        }
+    }
+
+    fun eliminarSimulacion(resultadoId: Int) {
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(
+                    eliminandoId = resultadoId,
+                    mensaje = null,
+                    error = null
+                )
+
+                resultadoGuardadoRepository.eliminarPorId(resultadoId)
+
+                val simulacionesActualizadas = resultadoGuardadoRepository.obtenerResumen(usuarioId)
+
+                _uiState.value = _uiState.value.copy(
+                    cargando = false,
+                    eliminandoId = null,
+                    mensaje = "Simulación eliminada correctamente.",
+                    simulaciones = simulacionesActualizadas
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    cargando = false,
+                    eliminandoId = null,
+                    error = e.message ?: "No se pudo eliminar la simulación."
                 )
             }
         }
