@@ -28,7 +28,12 @@ import com.example.matchcredit.data.repository.BancoRepository
 import com.example.matchcredit.data.repository.PerfilFinancieroRepository
 import com.example.matchcredit.data.repository.ProductoCrediticioRepository
 import com.example.matchcredit.data.repository.ResultadoGuardadoRepository
+import com.example.matchcredit.domain.calculator.ExplicacionResultado
+import com.example.matchcredit.domain.calculator.ExplicacionResultadoCalculator
+import com.example.matchcredit.domain.calculator.NivelRiesgoPrestamo
 import com.example.matchcredit.domain.calculator.ResultadoPrestamoCalculado
+import com.example.matchcredit.domain.calculator.RiesgoPrestamo
+import com.example.matchcredit.domain.calculator.RiesgoPrestamoCalculator
 
 @Composable
 fun DetallePrestamoScreen(
@@ -93,7 +98,7 @@ fun DetallePrestamoScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Revisa el costo estimado, requisitos y observaciones antes de guardar la simulación.",
+                text = "Revisa el costo estimado, el riesgo del préstamo y los requisitos antes de guardar la simulación.",
                 color = Color(0xffbbcac0),
                 fontSize = 14.sp,
                 lineHeight = 20.sp
@@ -257,6 +262,14 @@ fun DetalleContenido(
         else -> "No cumple"
     }
 
+    val riesgo = RiesgoPrestamoCalculator.calcular(
+        ratioPostCredito = resultado.ratioPostCredito
+    )
+
+    val explicacion = ExplicacionResultadoCalculator.generar(
+        resultado = resultado
+    )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -296,17 +309,34 @@ fun DetalleContenido(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
-                    .background(estadoColor)
+                    .background(estadoColor.copy(alpha = 0.18f))
+                    .border(
+                        width = 1.dp,
+                        color = estadoColor,
+                        shape = RoundedCornerShape(999.dp)
+                    )
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
                 Text(
                     text = estadoTexto,
-                    color = Color(0xff0d141d),
+                    color = estadoColor,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        RiesgoPrestamoCard(
+            riesgo = riesgo
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        ExplicacionResultadoCard(
+            explicacion = explicacion
+        )
 
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -425,6 +455,194 @@ fun DetalleContenido(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun RiesgoPrestamoCard(
+    riesgo: RiesgoPrestamo
+) {
+    val colorRiesgo = when (riesgo.nivel) {
+        NivelRiesgoPrestamo.BAJO -> Color(0xff5af0b3)
+        NivelRiesgoPrestamo.MODERADO -> Color(0xffffc107)
+        NivelRiesgoPrestamo.ALTO -> Color(0xffef5350)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xff0d141d))
+            .border(
+                width = 1.dp,
+                color = colorRiesgo,
+                shape = RoundedCornerShape(18.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "SEMÁFORO DE RIESGO",
+                    color = Color(0xffbbcac0),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = riesgo.titulo,
+                    color = colorRiesgo,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(colorRiesgo.copy(alpha = 0.18f))
+                    .border(
+                        width = 1.dp,
+                        color = colorRiesgo,
+                        shape = RoundedCornerShape(999.dp)
+                    )
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = "%.1f%%".format(riesgo.ratioPostCreditoPct),
+                    color = colorRiesgo,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = riesgo.mensaje,
+            color = Color(0xffbbcac0),
+            fontSize = 13.sp,
+            lineHeight = 18.sp
+        )
+    }
+}
+
+@Composable
+fun ExplicacionResultadoCard(
+    explicacion: ExplicacionResultado
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xff0d141d))
+            .border(
+                width = 1.dp,
+                color = Color(0xff3c4a42),
+                shape = RoundedCornerShape(18.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Text(
+            text = explicacion.titulo,
+            color = Color(0xffdce3f0),
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            lineHeight = 22.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = explicacion.resumen,
+            color = Color(0xffbbcac0),
+            fontSize = 13.sp,
+            lineHeight = 18.sp
+        )
+
+        if (explicacion.puntosFavorables.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Text(
+                text = "Puntos favorables",
+                color = Color(0xff5af0b3),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            explicacion.puntosFavorables.forEach { punto ->
+                ExplicacionPuntoItem(
+                    texto = punto,
+                    esFavorable = true
+                )
+            }
+        }
+
+        if (explicacion.puntosObservados.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Text(
+                text = "Aspectos a revisar",
+                color = Color(0xffffc107),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            explicacion.puntosObservados.forEach { punto ->
+                ExplicacionPuntoItem(
+                    texto = punto,
+                    esFavorable = false
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ExplicacionPuntoItem(
+    texto: String,
+    esFavorable: Boolean
+) {
+    val color = if (esFavorable) {
+        Color(0xff5af0b3)
+    } else {
+        Color(0xffffc107)
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(
+            text = if (esFavorable) "✓" else "!",
+            color = color,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text(
+            text = texto,
+            color = Color(0xffbbcac0),
+            fontSize = 12.sp,
+            lineHeight = 17.sp,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
