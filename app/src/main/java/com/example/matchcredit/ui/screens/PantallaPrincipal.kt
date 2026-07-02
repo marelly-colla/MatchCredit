@@ -27,6 +27,12 @@ import androidx.navigation.NavController
 import com.example.matchcredit.R
 import com.example.matchcredit.data.repository.PerfilFinancieroRepository
 import com.example.matchcredit.data.repository.UsuarioRepository
+import com.example.matchcredit.domain.calculator.DiagnosticoFinanciero
+import com.example.matchcredit.domain.calculator.DiagnosticoFinancieroCalculator
+import com.example.matchcredit.domain.calculator.NivelDiagnosticoFinanciero
+import com.example.matchcredit.domain.calculator.PrioridadRecomendacion
+import com.example.matchcredit.domain.calculator.RecomendacionPerfil
+import com.example.matchcredit.domain.calculator.RecomendacionPerfilCalculator
 import com.example.matchcredit.domain.enums.NivelRiesgo
 
 @Composable
@@ -46,6 +52,25 @@ fun PantallaPrincipalMatchCredit(
     }
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val diagnostico = DiagnosticoFinancieroCalculator.calcular(
+        score = state.perfil?.scoreMatchcredit,
+        ratioEndeudamientoActual = state.perfil?.ratioEndeudamientoActual,
+        capacidadPagoDisponible = state.perfil?.capacidadPagoDisponible,
+        ingresoMensual = state.perfil?.ingresoMensual
+    )
+
+    val recomendaciones = RecomendacionPerfilCalculator.generar(
+        score = state.perfil?.scoreMatchcredit,
+        ratioEndeudamientoActual = state.perfil?.ratioEndeudamientoActual,
+        capacidadPagoDisponible = state.perfil?.capacidadPagoDisponible,
+        ingresoMensual = state.perfil?.ingresoMensual,
+        gastosMensuales = state.perfil?.gastosMensuales,
+        cuotaMensualDeudas = state.perfil?.cuotaMensualDeudas,
+        antiguedadTrabajandoMeses = state.perfil?.antiguedadTrabajandoMeses,
+        tieneAhorros = state.perfil?.tieneAhorros,
+        montoAhorros = state.perfil?.montoAhorros
+    )
 
     Box(
         modifier = modifier
@@ -77,26 +102,39 @@ fun PantallaPrincipalMatchCredit(
                 nivelRiesgo = state.perfil?.nivelRiesgo
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            DiagnosticoCompactoCard(
+                diagnostico = diagnostico
+            )
+
+            Spacer(modifier = Modifier.height(22.dp))
+
+            Text(
+                text = "Resumen financiero",
+                color = Color(0xffdce3f0),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             EstadisticasSection(
                 ingreso = state.perfil?.ingresoMensual,
                 capacidadPago = state.perfil?.capacidadPagoDisponible
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             DeudaSection(
                 cuota = state.perfil?.cuotaMensualDeudas,
                 ratio = state.perfil?.ratioEndeudamientoActual
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
-            ConsultarPrestamoCard(
-                onClick = {
-                    navController.navigate("consultaPrestamo/$usuarioId")
-                }
+            RecomendacionPrincipalCard(
+                recomendacion = recomendaciones.firstOrNull()
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -250,9 +288,228 @@ fun CreditScoreCard(
             Text(
                 text = nivelRiesgo.interpretacion,
                 color = Color(0xff6b7280),
-                fontSize = 13.sp
+                fontSize = 13.sp,
+                lineHeight = 18.sp
             )
         }
+    }
+}
+
+@Composable
+fun DiagnosticoCompactoCard(
+    diagnostico: DiagnosticoFinanciero
+) {
+    val colorNivel = when (diagnostico.nivel) {
+        NivelDiagnosticoFinanciero.SALUDABLE -> Color(0xff5af0b3)
+        NivelDiagnosticoFinanciero.MODERADO -> Color(0xffffc107)
+        NivelDiagnosticoFinanciero.RIESGOSO -> Color(0xffef5350)
+        NivelDiagnosticoFinanciero.INCOMPLETO -> Color(0xff6b7280)
+    }
+
+    val textoNivel = when (diagnostico.nivel) {
+        NivelDiagnosticoFinanciero.SALUDABLE -> "Saludable"
+        NivelDiagnosticoFinanciero.MODERADO -> "Moderado"
+        NivelDiagnosticoFinanciero.RIESGOSO -> "Riesgoso"
+        NivelDiagnosticoFinanciero.INCOMPLETO -> "Pendiente"
+    }
+
+    val tituloVisual = when (diagnostico.nivel) {
+        NivelDiagnosticoFinanciero.SALUDABLE -> "Buen punto de partida para comparar opciones"
+        NivelDiagnosticoFinanciero.MODERADO -> "Avanza con cuidado antes de endeudarte"
+        NivelDiagnosticoFinanciero.RIESGOSO -> "Primero ordena tu capacidad de pago"
+        NivelDiagnosticoFinanciero.INCOMPLETO -> "Completa tu perfil para recibir orientación"
+    }
+
+    val subtituloVisual = when (diagnostico.nivel) {
+        NivelDiagnosticoFinanciero.SALUDABLE -> "Tu situación actual permite evaluar alternativas de crédito con menor riesgo."
+        NivelDiagnosticoFinanciero.MODERADO -> "Puedes comparar opciones, pero conviene revisar monto y plazo con atención."
+        NivelDiagnosticoFinanciero.RIESGOSO -> "Una nueva cuota podría afectar tu presupuesto mensual."
+        NivelDiagnosticoFinanciero.INCOMPLETO -> "Registra tus datos financieros para generar un diagnóstico más útil."
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xff151c25))
+            .border(
+                width = 1.dp,
+                color = Color(0xff3c4a42),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .padding(18.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "DIAGNÓSTICO MATCHCREDIT",
+                color = Color(0xffbbcac0),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f)
+            )
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(colorNivel.copy(alpha = 0.18f))
+                    .border(
+                        width = 1.dp,
+                        color = colorNivel,
+                        shape = RoundedCornerShape(999.dp)
+                    )
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = textoNivel,
+                    color = colorNivel,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(
+            verticalAlignment = Alignment.Top
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(58.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(colorNivel)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column {
+                Text(
+                    text = tituloVisual,
+                    color = Color(0xffdce3f0),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 23.sp
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = subtituloVisual,
+                    color = Color(0xffbbcac0),
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color(0xff0d141d))
+                .border(
+                    width = 1.dp,
+                    color = Color(0xff3c4a42),
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .padding(14.dp)
+        ) {
+            Text(
+                text = diagnostico.recomendacionPrincipal,
+                color = colorNivel,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                lineHeight = 18.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun RecomendacionPrincipalCard(
+    recomendacion: RecomendacionPerfil?
+) {
+    if (recomendacion == null) {
+        return
+    }
+
+    val prioridadColor = when (recomendacion.prioridad) {
+        PrioridadRecomendacion.ALTA -> Color(0xffef5350)
+        PrioridadRecomendacion.MEDIA -> Color(0xffffc107)
+        PrioridadRecomendacion.BAJA -> Color(0xff5af0b3)
+    }
+
+    val prioridadTexto = when (recomendacion.prioridad) {
+        PrioridadRecomendacion.ALTA -> "Alta"
+        PrioridadRecomendacion.MEDIA -> "Media"
+        PrioridadRecomendacion.BAJA -> "Baja"
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xff151c25))
+            .border(
+                width = 1.dp,
+                color = Color(0xff3c4a42),
+                shape = RoundedCornerShape(18.dp)
+            )
+            .padding(18.dp)
+    ) {
+        Text(
+            text = "RECOMENDACIÓN PRINCIPAL",
+            color = Color(0xffbbcac0),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(
+                text = recomendacion.titulo,
+                color = Color(0xffdce3f0),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 21.sp,
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(prioridadColor)
+                    .padding(horizontal = 9.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = prioridadTexto,
+                    color = Color(0xff0d141d),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = recomendacion.descripcion,
+            color = Color(0xffbbcac0),
+            fontSize = 13.sp,
+            lineHeight = 18.sp
+        )
     }
 }
 
@@ -303,50 +560,6 @@ fun DeudaSection(
 }
 
 @Composable
-fun ConsultarPrestamoCard(
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xff151c25))
-            .border(
-                width = 1.dp,
-                color = Color(0xff3c4a42),
-                shape = RoundedCornerShape(16.dp)
-            )
-            .clickable { onClick() }
-            .padding(18.dp)
-    ) {
-        Text(
-            text = "Simular nuevo crédito",
-            color = Color(0xffdce3f0),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Text(
-            text = "Compara bancos según monto, plazo y tipo de préstamo.",
-            color = Color(0xffbbcac0),
-            fontSize = 13.sp,
-            lineHeight = 18.sp
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "Ir a comparar →",
-            color = Color(0xff5af0b3),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
 fun EstadisticaCard(
     titulo: String,
     valor: String,
@@ -366,17 +579,17 @@ fun EstadisticaCard(
         Text(
             text = titulo,
             color = Color(0xffbbcac0),
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Medium
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         Text(
             text = valor,
             color = Color(0xffdce3f0),
             style = TextStyle(
-                fontSize = 24.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
         )
