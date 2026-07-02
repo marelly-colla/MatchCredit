@@ -122,6 +122,22 @@ class DetallePrestamoViewModel(
                     return@launch
                 }
 
+                val yaExiste = resultadoGuardadoRepository.existeSimulacion(
+                    usuarioId = usuarioId,
+                    productoId = resultado.producto.productoId,
+                    montoSolicitado = montoSolicitado,
+                    plazoMeses = plazoMeses
+                )
+
+                if (yaExiste) {
+                    _uiState.value = estadoActual.copy(
+                        guardando = false,
+                        guardadoExitoso = true,
+                        mensaje = "Esta simulación ya fue guardada anteriormente."
+                    )
+                    return@launch
+                }
+
                 _uiState.value = estadoActual.copy(
                     guardando = true,
                     mensaje = null

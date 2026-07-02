@@ -15,6 +15,7 @@ import com.example.matchcredit.ui.screens.ConsultaPrestamoScreen
 import com.example.matchcredit.ui.screens.ResultadosPrestamoScreen
 import com.example.matchcredit.ui.screens.DetallePrestamoScreen
 import com.example.matchcredit.ui.screens.HistorialSimulacionesScreen
+import com.example.matchcredit.ui.screens.DetalleSimulacionGuardadaScreen
 
 @Composable
 fun AppNavigation(
@@ -156,6 +157,24 @@ fun AppNavigation(
 
             HistorialSimulacionesScreen(
                 usuarioId = usuarioId,
+                resultadoGuardadoRepository = appContainer.resultadoGuardadoRepository,
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "detalleSimulacionGuardada/{usuarioId}/{resultadoId}",
+            arguments = listOf(
+                navArgument("usuarioId") { type = NavType.IntType },
+                navArgument("resultadoId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+            val resultadoId = backStackEntry.arguments?.getInt("resultadoId") ?: 0
+
+            DetalleSimulacionGuardadaScreen(
+                usuarioId = usuarioId,
+                resultadoId = resultadoId,
                 resultadoGuardadoRepository = appContainer.resultadoGuardadoRepository,
                 navController = navController
             )
