@@ -70,13 +70,10 @@ fun ResultadosPrestamoScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            Text(
-                text = "Resultados",
-                color = Color(0xffdce3f0),
-                style = TextStyle(
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            ResultadosHeaderConFlecha(
+                onBackClick = {
+                    navController.popBackStack()
+                }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -139,6 +136,51 @@ fun ResultadosPrestamoScreen(
             usuarioId = usuarioId,
             navController = navController,
             modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}
+
+@Composable
+fun ResultadosHeaderConFlecha(
+    onBackClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color(0xff151c25))
+                .border(
+                    width = 1.dp,
+                    color = Color(0xff5af0b3),
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .clickable {
+                    onBackClick()
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "←",
+                color = Color(0xff5af0b3),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = "Resultados",
+            color = Color(0xffdce3f0),
+            style = TextStyle(
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -208,7 +250,9 @@ fun ResultadoProductoCard(
                 color = Color(0xff3c4a42),
                 shape = RoundedCornerShape(18.dp)
             )
-            .clickable { onClick() }
+            .clickable {
+                onClick()
+            }
             .padding(18.dp)
     ) {
         Row(

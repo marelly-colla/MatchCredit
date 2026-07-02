@@ -27,6 +27,7 @@ import com.example.matchcredit.data.repository.ResultadoGuardadoRepository
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun HistorialSimulacionesScreen(
@@ -419,6 +420,7 @@ fun HistorialMensajeCard(
 fun formatearFechaSimulacion(
     fechaMillis: Long
 ): String {
-    val formato = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    val formato = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("es", "PE"))
+    formato.timeZone = TimeZone.getTimeZone("America/Lima")
     return formato.format(Date(fechaMillis))
 }
