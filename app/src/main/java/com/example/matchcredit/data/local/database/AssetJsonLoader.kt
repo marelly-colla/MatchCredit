@@ -9,24 +9,56 @@ import kotlinx.serialization.json.Json
 
 object AssetJsonLoader {
 
-    private val json = Json { ignoreUnknownKeys = true }
-
-    private fun leerAsset(context: Context, fileName: String): String {
-        return context.assets.open(fileName).bufferedReader().use { it.readText() }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
     }
 
-    fun cargarBancos(context: Context, fileName: String = "bancos.json"): List<Banco> {
-        val texto = leerAsset(context, fileName)
-        return json.decodeFromString(texto)
+    private fun leerAsset(
+        context: Context,
+        fileName: String
+    ): String {
+        return context.assets
+            .open(fileName)
+            .bufferedReader()
+            .use { reader ->
+                reader.readText()
+            }
     }
 
-    fun cargarTiposPrestamo(context: Context, fileName: String = "tipos_prestamo.json"): List<TipoPrestamo> {
-        val texto = leerAsset(context, fileName)
-        return json.decodeFromString(texto)
+    fun cargarBancos(
+        context: Context,
+        fileName: String = "bancos.json"
+    ): List<Banco> {
+        val texto = leerAsset(
+            context = context,
+            fileName = fileName
+        )
+
+        return json.decodeFromString<List<Banco>>(texto)
     }
 
-    fun cargarProductosCrediticios(context: Context, fileName: String = "productos_crediticios.json"): List<ProductoCrediticio> {
-        val texto = leerAsset(context, fileName)
-        return json.decodeFromString(texto)
+    fun cargarTiposPrestamo(
+        context: Context,
+        fileName: String = "tipos_prestamo.json"
+    ): List<TipoPrestamo> {
+        val texto = leerAsset(
+            context = context,
+            fileName = fileName
+        )
+
+        return json.decodeFromString<List<TipoPrestamo>>(texto)
+    }
+
+    fun cargarProductosCrediticios(
+        context: Context,
+        fileName: String = "productos_crediticios.json"
+    ): List<ProductoCrediticio> {
+        val texto = leerAsset(
+            context = context,
+            fileName = fileName
+        )
+
+        return json.decodeFromString<List<ProductoCrediticio>>(texto)
     }
 }
