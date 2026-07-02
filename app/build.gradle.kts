@@ -6,12 +6,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-configurations.all {
-    resolutionStrategy {
-        force("com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava")
-    }
-}
-
 android {
     namespace = "com.example.matchcredit"
     compileSdk = 36
@@ -80,6 +74,10 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+
+    // Concurrent Futures
+    implementation("androidx.concurrent:concurrent-futures:1.2.0")
+    implementation("com.google.guava:listenablefuture:1.0")
 
     // Icons
     implementation(libs.androidx.material.icons.extended)
